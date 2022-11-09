@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -52,7 +53,7 @@ public class BankDataFileUpdater implements Serializable {
     
     private static final String DE_BANK_DATA_HOST = "https://www.bundesbank.de";
 
-    private static final String DE_BANK_DATA_INDEX_URL = DE_BANK_DATA_HOST + "/de/aufgaben/unbarer-zahlungsverkehr/serviceangebot/bankleitzahlen/download---bankleitzahlen-602592";
+    private static final String DE_BANK_DATA_INDEX_URL = DE_BANK_DATA_HOST + "/de/aufgaben/unbarer-zahlungsverkehr/serviceangebot/bankleitzahlen/download-bankleitzahlen-602592";
 
     private static final Pattern DE_BANK_FILE_REGEXP = Pattern.compile("href=\"(/resource/blob/[0-9]+/[a-z0-9]+/mL/blz-aktuell-txt-data.txt)\"");
     
@@ -83,7 +84,7 @@ public class BankDataFileUpdater implements Serializable {
         }
     }
 
-    private boolean checkGermany() throws MalformedURLException, IOException {
+    private boolean checkGermany() throws IOException {
         String filePath = targetDirectory + File.separator + GermanBankInformationProvider.BANK_DATA_FILE_NAME;
         File f = new File(filePath);
         if (!fileNeedsUpdate(f)) {
@@ -114,14 +115,24 @@ public class BankDataFileUpdater implements Serializable {
         return DE_BANK_DATA_HOST + m.group(1);
     }
 
-    private String fetchUrl(String urlString) throws MalformedURLException, IOException {
+    private String fetchUrl(String urlString) throws IOException {
         URL url = new URL(urlString);
         String result;
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(url.openStream(), StandardCharsets.ISO_8859_1))) {
-            result = reader
-                .lines()
-                .parallel()
-                .collect(Collectors.joining("\n"));
+        HttpURLConnection connection = null;
+        try {
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0");
+            connection.setRequestProperty("Accept", "text/html");
+            connection.connect();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.ISO_8859_1))) {
+                result = reader
+                        .lines()
+                        .parallel()
+                        .collect(Collectors.joining("\n"));
+            }
+        } finally {
+            if (connection != null) connection.disconnect();
         }
         return result;
     }

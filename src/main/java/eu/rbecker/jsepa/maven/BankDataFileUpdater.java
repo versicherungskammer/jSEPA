@@ -24,6 +24,8 @@ package eu.rbecker.jsepa.maven;
  * THE SOFTWARE.
  */
 import eu.rbecker.jsepa.information.GermanBankInformationProvider;
+
+import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +44,7 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.GZIPInputStream;
 
 /**
  *
@@ -117,6 +120,14 @@ public class BankDataFileUpdater implements Serializable {
 
     private String fetchUrl(String urlString) throws IOException {
         URL url = new URL(urlString);
+
+        HttpsURLConnection urlConnection = (HttpsURLConnection) url.openConnection();
+
+        urlConnection.addRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:25.0) Gecko/20100101 Firefox/25.0");
+        urlConnection.addRequestProperty("Accept-Encoding", "gzip, deflate, br");
+        urlConnection.addRequestProperty("Accept", "*/*");
+        urlConnection.addRequestProperty("Connection", "keep-alive");
+
         String result;
         HttpURLConnection connection = null;
         try {

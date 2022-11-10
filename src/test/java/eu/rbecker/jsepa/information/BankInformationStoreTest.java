@@ -49,7 +49,6 @@ public class BankInformationStoreTest {
     @Test
     public void testForBankCode() {
         assertEquals("50010517", BankInformationStore.forBankCode("de", "50010517").getBankCode());
-        assertEquals("NOLADE21LBG", BankInformationStore.forBankCode("de", "24050110").getBic());
         assertEquals("COBADEHHXXX", BankInformationStore.forBankCode("de", "20040000").getBic());
     }
 

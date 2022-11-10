@@ -5,6 +5,10 @@
     <artifactId>jsepa</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
+    </properties>
     <build>
         <resources>
             <resource>
@@ -21,37 +25,37 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
                     <configuration>
-                        <source>1.7</source>
-                        <target>1.7</target>
+                        <source>11</source>
+                        <target>11</target>
                     </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
-            <plugin>  
-                <groupId>org.codehaus.mojo</groupId>  
-                <artifactId>exec-maven-plugin</artifactId>  
-                <version>1.5.0</version>  
-                <executions>  
-                    <execution>  
-                        <phase>compile</phase>  
-                        <goals>  
-                            <goal>java</goal>  
-                        </goals>  
-                        <configuration>  
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
                             <mainClass>eu.rbecker.jsepa.maven.BankDataFileUpdater</mainClass>
                             <cleanupDaemonThreads>false</cleanupDaemonThreads>
-                            <arguments>  
-                                <argument>${basedir}/src/main/resources</argument>  
-                            </arguments>  
-                        </configuration>  
+                            <arguments>
+                                <argument>${basedir}/src/main/resources</argument>
+                            </arguments>
+                        </configuration>
                     </execution>
-                </executions>  
-            </plugin>  
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>jaxb2-maven-plugin</artifactId>
-                <version>2.5.0</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>xjc-eu.rbecker.jsepa.directdebit.xml.schema.pain_008_001_02</id>
@@ -78,6 +82,19 @@
                             <clearOutputDir>false</clearOutputDir>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>xjc-eu.rbecker.jsepa.directdebit.xml.schema.pain_001_001_03</id>
+                        <goals>
+                            <goal>xjc</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/main/xsd/pain.001.001.03.xsd</source>
+                            </sources>
+                            <packageName>eu.rbecker.jsepa.directdebit.xml.schema.pain_001_001_03</packageName>
+                            <clearOutputDir>false</clearOutputDir>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -85,8 +102,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <source>11</source>
+                    <target>11</target>
                 </configuration>
             </plugin>
         </plugins>
@@ -107,19 +124,20 @@
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
-            <version>1.5.1</version>
+            <version>1.7</version>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
-            <version>2.3.2</version>
+            <version>3.0.1</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-runtime</artifactId>
-            <version>2.3.2</version>
+            <version>3.0.2</version>
             <scope>runtime</scope>
         </dependency>
+
     </dependencies>
     <distributionManagement>
         <repository>

@@ -4,33 +4,11 @@
 package eu.rbecker.jsepa.transfer;
 
 import eu.rbecker.jsepa.directdebit.util.SepaXmlDocumentBuilder;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.AccountIdentificationSEPA;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.ActiveOrHistoricCurrencyAndAmountSEPA;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.ActiveOrHistoricCurrencyCodeEUR;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.AmountTypeSEPA;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.BranchAndFinancialInstitutionIdentificationSEPA1;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.BranchAndFinancialInstitutionIdentificationSEPA3;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.CashAccountSEPA1;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.CashAccountSEPA2;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.ChargeBearerTypeSEPACode;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.CreditTransferTransactionInformationSCT;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.CustomerCreditTransferInitiationV03;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.Document;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.FinancialInstitutionIdentificationSEPA1;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.FinancialInstitutionIdentificationSEPA3;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.GroupHeaderSCT;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.ObjectFactory;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.PartyIdentificationSEPA1;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.PartyIdentificationSEPA2;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.PaymentIdentificationSEPA;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.PaymentInstructionInformationSCT;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.PaymentMethodSCTCode;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.PaymentTypeInformationSCT1;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.RemittanceInformationSEPA1Choice;
-import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_003_03.ServiceLevelSEPA;
+import eu.rbecker.jsepa.directdebit.xml.schema.pain_001_001_03.*;
+
+import javax.xml.datatype.DatatypeConfigurationException;
 import java.io.StringWriter;
 import java.util.GregorianCalendar;
-import javax.xml.datatype.DatatypeConfigurationException;
 
 /**
  *
@@ -52,8 +30,8 @@ class SepaTransferDocumentBuilder extends SepaXmlDocumentBuilder {
         return resultWriter.toString();
     }
 
-    private static GroupHeaderSCT createGroupHeaderSdd(SepaTransferDocumentData data) throws DatatypeConfigurationException {
-        GroupHeaderSCT result = new GroupHeaderSCT();
+    private static GroupHeader32 createGroupHeaderSdd(SepaTransferDocumentData data) {
+        GroupHeader32 result = new GroupHeader32();
         // message id
         result.setMsgId(data.getDocumentMessageId());
 
@@ -67,18 +45,18 @@ class SepaTransferDocumentBuilder extends SepaXmlDocumentBuilder {
         result.setCtrlSum(data.getTotalPaymentSum());
 
         // creditor name
-        PartyIdentificationSEPA1 partyIdentificationSEPA1 = new PartyIdentificationSEPA1();
-        partyIdentificationSEPA1.setNm(data.getPayerName());
+        PartyIdentification32 partyIdentification32 = new PartyIdentification32();
+        partyIdentification32.setNm(data.getPayerName());
 
-        result.setInitgPty(partyIdentificationSEPA1);
+        result.setInitgPty(partyIdentification32);
 
         return result;
     }
 
-    private static PaymentInstructionInformationSCT createPaymentInstructions(SepaTransferDocumentData data) throws DatatypeConfigurationException {
-        PaymentInstructionInformationSCT result = new PaymentInstructionInformationSCT();
+    private static PaymentInstructionInformation3 createPaymentInstructions(SepaTransferDocumentData data) {
+        PaymentInstructionInformation3 result = new PaymentInstructionInformation3();
         result.setBtchBookg(data.isBatchBooking());
-        result.setChrgBr(ChargeBearerTypeSEPACode.SLEV);
+        result.setChrgBr(ChargeBearerType1Code.SLEV);
         result.setCtrlSum(data.getTotalPaymentSum());
         result.setNbOfTxs(String.valueOf(data.getPayments().size()));
 
@@ -87,7 +65,7 @@ class SepaTransferDocumentBuilder extends SepaXmlDocumentBuilder {
         setPayerIbanAndBic(data, result);
 
         result.setPmtInfId(data.getDocumentMessageId());
-        result.setPmtMtd(PaymentMethodSCTCode.TRF);
+        result.setPmtMtd(PaymentMethod3Code.TRF);
         result.setReqdExctnDt(calendarToXmlGregorianCalendarDateTime(data.getDateOfExecution()));
 
         setPaymentTypeInformation(result);
@@ -99,86 +77,86 @@ class SepaTransferDocumentBuilder extends SepaXmlDocumentBuilder {
         return result;
     }
 
-    private static void addPaymentData(PaymentInstructionInformationSCT result, SepaTransferPayment p) {
+    private static void addPaymentData(PaymentInstructionInformation3 result, SepaTransferPayment p) {
         result.getCdtTrfTxInf().add(createPaymentData(p));
     }
 
-    private static void setPayerName(SepaTransferDocumentData data, PaymentInstructionInformationSCT result) {
-        PartyIdentificationSEPA2 pi2 = new PartyIdentificationSEPA2();
+    private static void setPayerName(SepaTransferDocumentData data, PaymentInstructionInformation3 result) {
+        PartyIdentification32 pi2 = new PartyIdentification32();
         pi2.setNm(data.getPayerName());
         result.setDbtr(pi2);
     }
 
-    private static void setPayerIbanAndBic(SepaTransferDocumentData data, PaymentInstructionInformationSCT result) {
-        AccountIdentificationSEPA ai = new AccountIdentificationSEPA();
+    private static void setPayerIbanAndBic(SepaTransferDocumentData data, PaymentInstructionInformation3 result) {
+        AccountIdentification4Choice ai = new AccountIdentification4Choice();
         ai.setIBAN(data.getPayerIban());
-        CashAccountSEPA1 ca1 = new CashAccountSEPA1();
+        CashAccount16 ca1 = new CashAccount16();
         ca1.setId(ai);
         result.setDbtrAcct(ca1);
 
-        BranchAndFinancialInstitutionIdentificationSEPA3 bafii = new BranchAndFinancialInstitutionIdentificationSEPA3();
-        FinancialInstitutionIdentificationSEPA3 fii = new FinancialInstitutionIdentificationSEPA3();
+        BranchAndFinancialInstitutionIdentification4 bafii = new BranchAndFinancialInstitutionIdentification4();
+        FinancialInstitutionIdentification7 fii = new FinancialInstitutionIdentification7();
         fii.setBIC(data.getPayerBic());
         bafii.setFinInstnId(fii);
         result.setDbtrAgt(bafii);
     }
 
-    private static void setPaymentTypeInformation(PaymentInstructionInformationSCT result) {
-        PaymentTypeInformationSCT1 pti = new PaymentTypeInformationSCT1();
-        ServiceLevelSEPA sls = new ServiceLevelSEPA();
+    private static void setPaymentTypeInformation(PaymentInstructionInformation3 result) {
+        PaymentTypeInformation19 pti = new PaymentTypeInformation19();
+        ServiceLevel8Choice sls = new ServiceLevel8Choice();
         sls.setCd("SEPA");
         pti.setSvcLvl(sls);
         result.setPmtTpInf(pti);
     }
 
-    private static CreditTransferTransactionInformationSCT createPaymentData(SepaTransferPayment p) {
-        CreditTransferTransactionInformationSCT result = new CreditTransferTransactionInformationSCT();
+    private static CreditTransferTransactionInformation10 createPaymentData(SepaTransferPayment p) {
+        CreditTransferTransactionInformation10 result = new CreditTransferTransactionInformation10();
         setPaymentCurrencyAndSum(p, result);
         setPayeeName(p, result);
         setPayeeIbanAndBic(p, result);
         setEndToEndId(p, result);
         setReasonForPayment(p, result);
-        
+
         return result;
     }
 
-    private static void setPaymentCurrencyAndSum(SepaTransferPayment p, CreditTransferTransactionInformationSCT result) {
-        AmountTypeSEPA at = new AmountTypeSEPA();
-        ActiveOrHistoricCurrencyAndAmountSEPA aohcaa = new ActiveOrHistoricCurrencyAndAmountSEPA();
-        aohcaa.setCcy(ActiveOrHistoricCurrencyCodeEUR.EUR);
+    private static void setPaymentCurrencyAndSum(SepaTransferPayment p, CreditTransferTransactionInformation10 result) {
+        AmountType3Choice at = new AmountType3Choice();
+        ActiveOrHistoricCurrencyAndAmount aohcaa = new ActiveOrHistoricCurrencyAndAmount();
+        aohcaa.setCcy("EUR");
         aohcaa.setValue(p.getPaymentSum());
         at.setInstdAmt(aohcaa);
         result.setAmt(at);
     }
 
-    private static void setPayeeName(SepaTransferPayment p, CreditTransferTransactionInformationSCT result) {
-        PartyIdentificationSEPA2 pis2 = new PartyIdentificationSEPA2();
+    private static void setPayeeName(SepaTransferPayment p, CreditTransferTransactionInformation10 result) {
+        PartyIdentification32 pis2 = new PartyIdentification32();
         pis2.setNm(p.getPayeeName());
         result.setCdtr(pis2);
     }
 
-    private static void setEndToEndId(SepaTransferPayment p, CreditTransferTransactionInformationSCT result) {
-        PaymentIdentificationSEPA pis = new PaymentIdentificationSEPA();
+    private static void setEndToEndId(SepaTransferPayment p, CreditTransferTransactionInformation10 result) {
+        PaymentIdentification1 pis = new PaymentIdentification1();
         String id = p.getEndToEndId();
         pis.setEndToEndId(id == null || id.isEmpty() ? "NOTPROVIDED" : id);
         result.setPmtId(pis);
     }
 
-    private static void setReasonForPayment(SepaTransferPayment p, CreditTransferTransactionInformationSCT result) {
-        RemittanceInformationSEPA1Choice ri = new RemittanceInformationSEPA1Choice();
-        ri.setUstrd(p.getReasonForPayment());
+    private static void setReasonForPayment(SepaTransferPayment p, CreditTransferTransactionInformation10 result) {
+        RemittanceInformation5 ri = new RemittanceInformation5();
+        ri.getUstrd().add(p.getReasonForPayment());
         result.setRmtInf(ri);
     }
 
-    private static void setPayeeIbanAndBic(SepaTransferPayment p, CreditTransferTransactionInformationSCT ctti) {
-        CashAccountSEPA2 ca = new CashAccountSEPA2();
-        AccountIdentificationSEPA ai = new AccountIdentificationSEPA();
+    private static void setPayeeIbanAndBic(SepaTransferPayment p, CreditTransferTransactionInformation10 ctti) {
+        CashAccount16 ca = new CashAccount16();
+        AccountIdentification4Choice ai = new AccountIdentification4Choice();
         ai.setIBAN(p.getPayeeIban());
         ca.setId(ai);
         ctti.setCdtrAcct(ca);
-        
-        BranchAndFinancialInstitutionIdentificationSEPA1 bafiis = new BranchAndFinancialInstitutionIdentificationSEPA1();
-        FinancialInstitutionIdentificationSEPA1 fii = new FinancialInstitutionIdentificationSEPA1();
+
+        BranchAndFinancialInstitutionIdentification4 bafiis = new BranchAndFinancialInstitutionIdentification4();
+        FinancialInstitutionIdentification7 fii = new FinancialInstitutionIdentification7();
         fii.setBIC(p.getPayeeBic());
         bafiis.setFinInstnId(fii);
         ctti.setCdtrAgt(bafiis);
